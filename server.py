@@ -43,12 +43,13 @@ def populate_db():
 init_db()
 populate_db()
 
-account_sid = 'ACdc566242fe8fc3fab6277ea0b4f6be1b'
-auth_token = '0d3617426392745478ae35e5590ae2ff'
+# Insert own values for account_sid, auth_token, dst_ph
+account_sid = sid
+auth_token = tok
 
-dst_ph_fire = '+919900706335'
-dst_ph_police ='+919905904413'
-dst_ph_med = '+916282346254'
+dst_ph_fire = ph1
+dst_ph_police = ph2
+dst_ph_med = ph3
 client = Client(account_sid, auth_token)
 
 
@@ -62,6 +63,7 @@ def get_location(address):
     return (lat, lng)
 
 def find_nearest_dispatcher(emergency_type, address):
+    # Query all dispatchers of required type
     conn = sqlite3.connect('emergencies.db')
     gmaps = googlemaps.Client(key='AIzaSyC9QD76UydJoopOIttI-Sg-WOLnuqlSvj4')
     c = conn.cursor()
@@ -69,7 +71,6 @@ def find_nearest_dispatcher(emergency_type, address):
     dispatchers = c.fetchall()
     conn.close()
 
-    #print("Address:", address)
     distances = []
     for dispatcher in dispatchers:
         dispatcher_id, name, location = dispatcher
@@ -84,10 +85,6 @@ def find_nearest_dispatcher(emergency_type, address):
     nearest_dispatcher = distances[0]
     return nearest_dispatcher
 
-
-
-
-
 def get_dispatcher_location(dispatcher):
     # Query the database for the location of the dispatcher
     conn = sqlite3.connect('emergencies.db')
@@ -95,8 +92,7 @@ def get_dispatcher_location(dispatcher):
     cursor.execute('''SELECT location FROM dispatchers WHERE id = ?''', (dispatcher[0],))
     location = cursor.fetchone()[0]
     conn.close()
-    loc=get_location(location)    
-
+    loc=get_location(location)   
     return loc
 
 def calculate_eta(dispatcher, address):
@@ -106,11 +102,7 @@ def calculate_eta(dispatcher, address):
     directions_result = gmaps.directions(dispatcher_location, address, mode="driving", departure_time="now")
     # Extract the ETA from the directions result
     eta = (directions_result[0]['legs'][0]['duration_in_traffic']['value'])/100
-
-
     return eta
-
-
 
 def handle_client(client_socket):
     # Receive the emergency request from the client
@@ -127,12 +119,13 @@ def handle_client(client_socket):
     
     print(type+' emergency. Help requested from '+ address +'\n')
 
-    # Query the database for the nearest emergency dispatcher
+    # Query the database for the nearest emergency dispatcher    
     addr=get_location(address)
     dispatcher = find_nearest_dispatcher(type, addr)
     id, name=dispatcher[0],dispatcher[1]
     print(name +' dispatched for '+address+'\n')
-    
+
+    # Send emergence message to dispatcher    
     sms_body = f"Emergency {type.capitalize()} at {address}. Dispatch help immediately!!."
     if type=='fire':
         client.messages.create(to=dst_ph_fire, from_=ph_no, body=sms_body)
@@ -147,6 +140,7 @@ def handle_client(client_socket):
     conn.commit()
 
     client_socket.send(name.encode())
+    
     # Calculate the ETA using Google Maps API
     eta = calculate_eta(dispatcher, address)
 
@@ -160,8 +154,7 @@ def handle_client(client_socket):
     
     c.execute("""UPDATE emergency_logs SET status = 'completed' WHERE dispatcher_id =? and address=?""",(id,address))
     conn.commit()
-    conn.close()
-    
+    conn.close()  
     
 
     print('Emergency handled at '+address+' Logged successfully\n')
