@@ -35,13 +35,13 @@ The Emergency Service Dispatcher system includes the following core functionalit
 - Google Maps API key
 - Twilio API account
 
-### Discussion
+#### Discussion
 The Emergency Service Dispatcher system significantly improves emergency response coordination and efficiency. By integrating modern technologies and providing real-time data and notifications, the system enhances the effectiveness of emergency services.
 
-### Conclusion & Future Works
+#### Conclusion & Future Works
 The project represents a significant advancement in emergency response coordination. Future enhancements could include refining the nearest dispatcher algorithm, integrating additional communication channels (SMS, email), and developing a real-time dashboard for monitoring emergency response performance.
 
-### References
+#### References
 1. Google Maps Geocoding API
 2. Google Maps Services Python
 3. Twilio Python GitHub
